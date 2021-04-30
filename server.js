@@ -1,24 +1,30 @@
 const express = require("express");
-const mongojs = require("mongojs");
-const logger = require("morgan");
+const mongoose = require("mongoose");
+
+const PORT = process.env.PORT || 3000
 
 const app = express();
 
-app.use(logger("dev"));
+const db = require("./models");
+
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
 app.use(express.static("public"));
 
-const databaseUrl = "workout";
-const collections = ["exercise"];
+mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/workout", {
+  useNewUrlParser: true,
+  useFindAndModify: false,
+  useCreateIndex: true,
+  });
 
-const db = mongojs(databaseUrl, collections);
-
-db.on("error", error => {
-  console.log("Database Error:", error);
-});
+  app.listen(PORT, () => {
+    console.log(`App running on port ${PORT}!`);
+  });
+  
+  db.on("error", error => {
+    console.log("Database Error:", error);
+  });
 
 app.get("/", (req, res) => {
   res.send(index.html);
