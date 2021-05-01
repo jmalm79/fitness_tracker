@@ -31,11 +31,11 @@ app.get ('/stats', (req, res) => {
 res.sendFile(path.join(__dirname, "./public/stats.html"));
 });
 
-app.get('/api/workouts', (req, res) => {
+app.get('/api/workouts/', (req, res) => {
   db.Workout.aggregate([
       {
           $addFields:{
-              totalDuration: {$sum: "$exercise.duration"}
+              totalDuration: {$sum: "$exercises.duration"}
           }
       }
   ])
@@ -50,6 +50,7 @@ app.get('/api/workouts', (req, res) => {
 app.post("/api/workouts/", ({body}, res) => {
   db.Workout.create(body)
   .then(dbWorkout => {
+    console.log(dbWorkout);
     res.json(dbWorkout);
   }).catch(err => {
     res.json(err);
@@ -58,7 +59,7 @@ app.post("/api/workouts/", ({body}, res) => {
 
 app.put("/api/workouts/:id", (req, res) => {
   id = req.params.id
-  db.Workout.findOneAndUpdate({"_id": id}, {$push: {exercise: req.body} })
+  db.Workout.findOneAndUpdate({"_id": id}, {$push: {exercises: req.body} })
   .then(result => {
     res.json(result);
     })
@@ -68,10 +69,16 @@ app.put("/api/workouts/:id", (req, res) => {
 })
 
 app.get("/api/workouts/range", (req, res) => {
-  db.Workout.find({})
+  db.Workout.aggregate([
+    {
+        $addFields:{
+            totalDuration: {$sum: "$exercises.duration"}
+        }
+    }
+]).limit(7)
   .then(dbWorkout => {
     res.json(dbWorkout);
-  }) .catch(err => {
+  }).catch(err => {
     res.json(err);
   });
 });
